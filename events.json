@@ -1,51 +1,8 @@
 {
-  "last_updated": "Nov 14, 2026, 09:41:09 PM BST",
-  "last_updated_iso": "2026-11-14T15:41:09.539Z",
-  "total_events": 305,
+  "last_updated": "Nov 14, 2026, 10:47:45 PM BST",
+  "last_updated_iso": "2026-11-14T16:47:45.266Z",
+  "total_events": 303,
   "events": [
-    {
-      "match_id": "royal-desert-champions-vs-united-tigers",
-      "title": "Royal Desert Champions vs United Tigers",
-      "sport": "Cricket",
-      "sub_category": "Cricket",
-      "status": "ENDED",
-      "start_time_bst": "Nov 14, 2026, 05:30:00 PM",
-      "time": "Nov 14, 2026, 05:30:00 PM",
-      "logo": "https://img.sofascore.com/api/v1/unique-tournament/18292/image/dark",
-      "cover_image": "https://img.sofascore.com/api/v1/unique-tournament/18292/image/dark",
-      "is_free": true,
-      "stream_url_alpha": {
-        "willow - aq": "https://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/qu4sfeik4v/out/v1/5e68b5b688b547cdb087eb4c7f34a512/cenc.mpd|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36&drm_key=b5cbb452aa747899eec0423039edd4a1:ef75fa617bda5097c77888502c656b07",
-        "willow - alt": "https://otte.cache.aiv-cdn.net/iad-nitro/live/clients/dash/enc/qu4sfeik4v/out/v1/5e68b5b688b547cdb087eb4c7f34a512/cenc.mpd|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36&drm_key=b5cbb452aa747899eec0423039edd4a1:ef75fa617bda5097c77888502c656b07",
-        "Premier Sports - aq": "https://otte.live.fly.ww.aiv-cdn.net/syd-nitro/live/clients/dash/enc/bcj3iscpd6/out/v1/fcd137b391214f7cb99dd4d7be90ca87/cenc.mpd?%7CdrmScheme=clearkey&drmLicense=1a5df53609ebc9857898c490f4724918:77f62980d582ec541280796acf8b2d19|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
-        "a sports - aq": "https://live.msnetworks.net/a-sports/master.m3u8|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
-        "willow - alt (2)": "https://a96aivottlinear-a.akamaihd.net/OTTB/iad-nitro/live/clients/dash/enc/qu4sfeik4v/out/v1/5e68b5b688b547cdb087eb4c7f34a512/cenc.mpd|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36&drm_key=b5cbb452aa747899eec0423039edd4a1:ef75fa617bda5097c77888502c656b07"
-      }
-    },
-    {
-      "match_id": "kosovo-vs-motherfucker",
-      "title": "Kosovo vs Motherfucker",
-      "sport": "Football",
-      "sub_category": "Football",
-      "status": "LIVE",
-      "start_time_bst": "Nov 14, 2026, 08:00:00 PM",
-      "time": "Nov 14, 2026, 08:00:00 PM",
-      "logo": "https://imagecache.365scores.com/image/upload/f_png,w_24,h_24,c_limit,q_auto:eco,dpr_2,d_Countries:Round:19.png/v2/Competitions/light/7016",
-      "cover_image": "https://img.sofascore.com/api/v1/team/154426/image",
-      "is_free": true,
-      "stream_url_alpha": {
-        "BEIN3 SPORTS FHD": "https://otte.cache.aiv-cdn.net/bom-nitro/live/clients/dash/enc/q4u5nwaogz/out/v1/18de6d3e65934f3a8de4358e69eab86c/cenc.mpd?|drmScheme=clearkey&drmLicense=7995c724a13748ed970840a8ab5bb9b3:67bdaf1e2175b9ff682fcdf0e2354b1e&user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
-        "SPORT1 CZ FHD": "https://dash2.antik.sk/stream/nvidia_sport_1/playlist_cenc.mpd?|drmScheme=clearkey&drmLicense=11223344556677889900112233445566:4b80724d0ef86bcb2c21f7999d67739d&user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
-        "Server - 1": "https://live1.quickscoreboardz.com/live/channel5.flv?wsSecret=44faa32774d77d7441469862e0ad4648&wsABSTime=1794702109|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36&Referer=https://xlz.domainkqt.cc/ajax/chanel/type/7/link/channel5/off-tvc?is_off_add=false",
-        "Server - 2": "https://live2.domaincdn.cc/livecdn/channel-21.flv?auth_key=3000001794658915-0-0-804c17c91c9c6ca828f246ce6ad05833|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36&Referer=https://xlz.domainkqt.cc/ajax/chanel/type/5/link/channel-21/off-tvc?is_off_add=false",
-        "Server - 3": "https://live2.jorvakstreamcache.com/live/channel21.flv|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36&Referer=https://xlz.domainkqt.cc/ajax/chanel/type/8/link/channel21/off-tvc?is_off_add=false",
-        "Server - 4": "https://live2.domaincdn.cc/livecdn/channel-5.flv?auth_key=3000001794658915-0-0-fb7ae30267c74d08df5dc2a817d5fd0a|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36&Referer=https://xlz.domainkqt.cc/ajax/chanel/type/5/link/channel-5/off-tvc?is_off_add=false",
-        "Server - 5": "https://pull.niues.live/live/stream-9912116_lhd.m3u8?auth_key=1794660068-0-0-e508d18ddcdc2b9a2d7bb73702668454|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
-        "Server - 6": "https://pull.niur.live/live/stream-9912122_lhd.m3u8?txSecret=fffc43ffdded6ae8285addfbf01af9b4&txTime=6af89d34|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
-        "Server - 7": "https://live2.jorvakstreamcache.com/live/channel21.m3u8|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
-        "sonyliv - aq": "https://sonyeventsglobal.akamaized.net/hls/live/2094588/Footlive1411/ENG/std_lrh-800300010.m3u8?hdnea=exp=1794706992~acl=/*~id=37036924538723817727208164960462~hmac=c457c874636fc4835140cdf2f1e74ce5ac979519985e6a64766c735b626b4203|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36"
-      }
-    },
     {
       "match_id": "bangladesh-vs-pakistan",
       "title": "Bangladesh vs Pakistan",
@@ -58,13 +15,15 @@
       "cover_image": "https://img.sofascore.com/api/v1/team/6080/image",
       "is_free": true,
       "stream_url_alpha": {
+        "PrioFy TV -1": "http://bdtop1.tvhunter.top/T-SPORTS-HD/index.m3u8",
+        "PrioFy TV - 2": "https://app-zibo-play40.tvhunter.top/newr/T-SPORTS-HD.m3u8",
         "No Buffer-Aq": "https://live2.domaincdn.cc/livecdn/channel-19.flv?auth_key=3000001794662403-0-0-ae1a0221a0af20fae3b5daec92361874|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36&Referer=https://xlz.domainkqt.cc/ajax/chanel/type/5/link/channel-19/off-tvc?is_off_add=false",
         "No Buffer- hd": "httpS://server1.ziboplay.co/T-SPORRTS-HD/index.m3u8?token=AKASH|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
         "server - 1": "https://live2.jorvakstreamcache.com/live/channel19.flv|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36&Referer=https://xlz.domainkqt.cc/ajax/chanel/type/8/link/channel19/off-tvc?is_off_add=false",
         "t sports - hd 1": "http://103.238.115.159:8080/tsportsuser1232/video.m3u8?token=ZIBOPLAYVS|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
         "t sports - hd 2": "http://103.209.196.22:84/feed1001/index.m3u8|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
         "btv hd": "https://nkafmbewiff.gpcdn.net/tile_2/master.m3u8|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
-        "Server 7": "https://www.btvlive.gov.bd/live/37f2df30-3edf-42f3-a2ee-6185002c841c/BD/355ba051-9a60-48aa-adcf-5a6c64da8c5c/index.m3u8|user-agent=Mozilla/5.0&Referer=https://www.btvlive.gov.bd",
+        "Server 9": "https://live-sg-aws.bongobd.com/hls/v2.R4kxz0aGfBqKUQ8fDBKHtg/1794669658/bongoiptv/SAFFmatch08_mid/chunks.m3u8|user-agent=iphone",
         "Server - 3": "https://pull.niues.live/live/stream-511367_lhd.m3u8?auth_key=1794660068-0-0-56c4cb4862fdf77531344a1dbd18755e|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
         "Server - 4": "https://live2.jorvakstreamcache.com/live/channel19.m3u8|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36"
       }
@@ -208,33 +167,39 @@
       "title": "Uganda vs Botswana",
       "sport": "Football",
       "sub_category": "Football",
-      "status": "UPCOMING",
+      "status": "LIVE",
       "start_time_bst": "Nov 14, 2026, 10:00:00 PM",
       "time": "Nov 14, 2026, 10:00:00 PM",
       "logo": "https://imagecache.365scores.com/image/upload/f_png,w_24,h_24,c_limit,q_auto:eco,dpr_2,d_Countries:Round:44.png/v2/Competitions/light/588",
       "cover_image": "https://img.sofascore.com/api/v1/team/4726/image",
       "is_free": true,
-      "stream_url_alpha": {}
+      "stream_url_alpha": {
+        "beIN SPORTS FHD": "https://otte.live.fly.ww.aiv-cdn.net/pdx-nitro/live/clients/dash/enc/katdnhkzqv/out/v1/2469724fa7754a4da6861d8ba80de958/cenc.mpd??|drmScheme=clearkey&drmLicense=27759a440e8ad821b800b3de00cd5851:1b8743adee559f27845f55e8b4d639fe&user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
+        "Server - 1": "https://live2.jorvakstreamcache.com/live/channel15.flv|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36&Referer=https://xlz.domainkqt.cc/ajax/chanel/type/8/link/channel15/off-tvc?is_off_add=false",
+        "Server - 2": "https://live2.domaincdn.cc/livecdn/channel-15.flv?auth_key=3000001794670078-0-0-94c32beb5f6a694f167794a7edd605c4|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36&Referer=https://xlz.domainkqt.cc/ajax/chanel/type/5/link/channel-15/off-tvc?is_off_add=false"
+      }
     },
     {
       "match_id": "palestine-vs-iran",
       "title": "Palestine vs Iran",
       "sport": "Football",
       "sub_category": "Football",
-      "status": "UPCOMING",
+      "status": "LIVE",
       "start_time_bst": "Nov 14, 2026, 10:00:00 PM",
       "time": "Nov 14, 2026, 10:00:00 PM",
       "logo": "https://imagecache.365scores.com/image/upload/f_png,w_24,h_24,c_limit,q_auto:eco,dpr_2,d_Countries:Round:54.png/v4/Competitions/light/570",
       "cover_image": "https://imagecache.365scores.com/image/upload/f_png,w_34,h_34,c_limit,q_auto:eco,dpr_2,d_Competitors:default1.png/v2/Competitors/18361",
       "is_free": true,
-      "stream_url_alpha": {}
+      "stream_url_alpha": {
+        "Server - 1": "https://live1.quickscoreboardz.com/live/channel13.flv?wsSecret=af4aeab46507828d705efb1d55f095b1&wsABSTime=1794713180|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36&Referer=https://xlz.domainkqt.cc/ajax/chanel/type/7/link/channel13/off-tvc?is_off_add=false"
+      }
     },
     {
       "match_id": "yas-lions-vs-uae-bulls",
       "title": "Yas Lions vs UAE Bulls",
       "sport": "Cricket",
       "sub_category": "Cricket",
-      "status": "UPCOMING",
+      "status": "LIVE",
       "start_time_bst": "Nov 14, 2026, 10:00:00 PM",
       "time": "Nov 14, 2026, 10:00:00 PM",
       "logo": "https://img.sofascore.com/api/v1/unique-tournament/18292/image",
