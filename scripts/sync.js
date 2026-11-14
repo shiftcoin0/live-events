@@ -29,6 +29,28 @@ const OUTPUT_FILE = path.join(__dirname, "..", "events.json");
 const MAX_RETRIES = 3;
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+const KNOWN_STATUSES = new Set([
+  "UPCOMING",
+  "LIVE",
+  "ENDED",
+  "FINISHED",
+  "COMPLETED",
+  "HALFTIME",
+  "HT",
+  "FT",
+  "NS",
+  "SCHEDULED",
+  "POSTPONED",
+  "CANCELLED",
+  "CANCELED",
+  "ABANDONED",
+  "DELAYED",
+  "INPLAY",
+  "PLAYING",
+  "SOON",
+  "OVER",
+]);
+
 // ── Crypto helpers ────────────────────────────────────────────────────────────
 function sign(timestamp) {
   return crypto.createHmac("sha256", HMAC_SECRET).update(timestamp).digest("base64");
@@ -62,7 +84,6 @@ function dec(str) {
   if (looksBase64) {
     try {
       const decoded = Buffer.from(trimmed, "base64").toString("utf8").trim();
-      // কেবল প্রিন্টেবল ASCII হলেই Base64 ডিকোড হিসেবে নিন
       if (decoded && /^[\x20-\x7E]+$/.test(decoded)) {
         return decoded;
       }
@@ -71,6 +92,40 @@ function dec(str) {
     }
   }
   return trimmed;
+}
+
+/** স্ট্যাটাস ডিকোড (AES, plain text অথবা Base64 যেকোনো ফরম্যাট সাপোর্ট করবে) */
+function decStatus(val) {
+  if (!val || typeof val !== "string") return "";
+  const trimmed = val.trim();
+  if (!trimmed) return "";
+
+  // ১) আগে AES ডিক্রিপ্ট চেষ্টা
+  const viaAes = aesDecrypt(trimmed);
+  if (viaAes !== null && viaAes.trim()) {
+    return viaAes.trim().toUpperCase();
+  }
+
+  // ২) আগেই যদি প্লেইন স্ট্যাটাস (যেমন LIVE, UPCOMING, ENDED, FINISHED) হয়ে থাকে
+  const upper = trimmed.toUpperCase();
+  if (KNOWN_STATUSES.has(upper)) {
+    return upper;
+  }
+
+  // ৩) নাহলে Base64 কিনা যাচাই করে ডিকোড
+  const looksBase64 = /^[A-Za-z0-9+/]+=*$/.test(trimmed) && trimmed.length % 4 === 0;
+  if (looksBase64) {
+    try {
+      const decoded = Buffer.from(trimmed, "base64").toString("utf8").trim();
+      if (decoded && /^[A-Za-z0-9 _-]+$/.test(decoded)) {
+        return decoded.toUpperCase();
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  return upper;
 }
 
 /**
@@ -120,10 +175,9 @@ function buildTitle(team1, team2, league, fallbackId) {
 
 function detectSport(league, title, raw) {
   if (raw.sport) {
-    return {
-      sport: raw.sport,
-      sub_category: raw.sub_category || raw.sport,
-    };
+    const s = dec(String(raw.sport));
+    const sub = raw.sub_category ? dec(String(raw.sub_category)) : s;
+    return { sport: s, sub_category: sub };
   }
   const text = `${league} ${title}`.toLowerCase();
 
@@ -160,7 +214,6 @@ function parseEventDate(dateStr, timeStr) {
   const combined = `${dateStr || ""} ${timeStr || ""}`.trim();
   if (!combined) return null;
 
-  // যদি আগে থেকেই timezone উল্লেখ থাকে (Z, +06:00, GMT, UTC ইত্যাদি)
   const hasTz = /(Z|[+-]\d{2}:?\d{2}|GMT|UTC|BST)/i.test(combined);
   if (hasTz) {
     const normalized = combined.replace(/\bBST\b/i, "+06:00");
@@ -168,7 +221,6 @@ function parseEventDate(dateStr, timeStr) {
     return Number.isNaN(parsed.getTime()) ? null : parsed;
   }
 
-  // Timezone না থাকলে UTC ধরে নিয়ে SOURCE_TZ_OFFSET_HOURS বিয়োগ করা হচ্ছে
   const parsed = new Date(`${combined} UTC`);
   if (Number.isNaN(parsed.getTime())) {
     const fallback = new Date(combined);
@@ -192,19 +244,43 @@ function formatBstDateTime(dateObj) {
 }
 
 function resolveStatus(raw, startDate, isHot, now) {
-  if (raw.status && typeof raw.status === "string") {
-    return raw.status.trim().toUpperCase();
+  // ১) সোর্স API থেকে সরাসরি স্ট্যাটাস চেক (এনক্রিপ্টেড থাকলেও ডিকোড হবে)
+  const rawStatusCandidates = [
+    raw.status,
+    raw.st,
+    raw.match_status,
+    raw.matchStatus,
+    raw.event_status,
+    raw.eventStatus,
+    raw.live_status,
+    raw.liveStatus,
+    raw.state,
+    raw.match_state,
+  ];
+
+  for (const candidate of rawStatusCandidates) {
+    const decoded = decStatus(candidate);
+    if (decoded) {
+      return decoded; // UPCOMING, LIVE, ENDED, FINISHED ইত্যাদি হুবহু রিটার্ন করবে
+    }
   }
+
+  // ২) সোর্সে বুলিয়ান ফ্ল্যাগ থাকলে
+  if (raw.is_live === true || raw.isLive === true || raw.live === true) return "LIVE";
+  if (raw.is_ended === true || raw.isEnded === true || raw.ended === true) return "ENDED";
+  if (raw.is_finished === true || raw.isFinished === true || raw.finished === true) return "FINISHED";
+
+  // ৩) সোর্স API-তে কোনো স্ট্যাটাস না থাকলে সময় অনুযায়ী fallback
   if (!startDate) {
     return isHot ? "LIVE" : "UPCOMING";
   }
   const nowMs = now.getTime();
   const startMs = startDate.getTime();
-  const liveWindowMs = 4 * 60 * 60 * 1000; // শুরু হওয়ার ৪ ঘণ্টা পর্যন্ত LIVE ধরা হলো
+  const liveWindowMs = 4 * 60 * 60 * 1000;
 
   if (nowMs < startMs) return "UPCOMING";
   if (nowMs <= startMs + liveWindowMs || isHot) return "LIVE";
-  return "COMPLETED";
+  return "ENDED";
 }
 
 /**
@@ -275,8 +351,8 @@ function extractEncrypted(id, raw) {
 
   return {
     id,
-    date: raw.d || "",
-    time: raw.t || "",
+    date: dec(raw.d) || "",
+    time: dec(raw.t) || "",
     league: dec(raw.l),
     team1: dec(raw.t1),
     team2: dec(raw.t2),
@@ -336,7 +412,6 @@ function formatEvent(id, raw, now, usedIds) {
     ? formatBstDateTime(startDate)
     : `${decoded.date} ${decoded.time}`.trim();
 
-  // match_id তৈরি এবং ডুপ্লিকেট এড়ানো
   let matchId = String(raw.match_id || slugify(title) || id);
   if (usedIds.has(matchId)) {
     matchId = `${matchId}-${slugify(id) || usedIds.size}`;
@@ -430,9 +505,13 @@ async function main() {
     throw new Error("API returned 0 events — পুরনো events.json অক্ষত রাখা হলো");
   }
 
-  // সময় অনুযায়ী সর্ট করে কেবল চূড়ান্ত অবজেক্ট রাখা
   formatted.sort((a, b) => a._sortMs - b._sortMs);
   const events = formatted.map((item) => item.data);
+
+  const statusSummary = events.reduce((acc, ev) => {
+    acc[ev.status] = (acc[ev.status] || 0) + 1;
+    return acc;
+  }, {});
 
   const readable = `${formatBstDateTime(now)} BST`;
 
@@ -444,7 +523,10 @@ async function main() {
   };
 
   fs.writeFileSync(OUTPUT_FILE, JSON.stringify(output, null, 2), "utf8");
-  console.log(`[${now.toISOString()}] ✅ Saved ${events.length} events → last_updated: ${readable}`);
+  console.log(
+    `[${now.toISOString()}] ✅ Saved ${events.length} events → Status summary:`,
+    statusSummary
+  );
 }
 
 main().catch((err) => {
