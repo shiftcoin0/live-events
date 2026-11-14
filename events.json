@@ -1,6 +1,6 @@
 {
-  "last_updated": "Nov 14, 2026, 09:19:06 PM BST",
-  "last_updated_iso": "2026-11-14T15:19:06.940Z",
+  "last_updated": "Nov 14, 2026, 09:24:01 PM BST",
+  "last_updated_iso": "2026-11-14T15:24:01.726Z",
   "total_events": 306,
   "events": [
     {
@@ -2437,7 +2437,7 @@
       "cover_image": "https://img.sofascore.com/api/v1/team/6080/image",
       "is_free": true,
       "stream_url_alpha": {
-        "server - hd": "httpS://server1.ziboplay.co/T-SPORRTS-HD/index.m3u8?token=AKASH|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
+        "No Buffer- hd": "httpS://server1.ziboplay.co/T-SPORRTS-HD/index.m3u8?token=AKASH|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
         "t sports - hd 1": "http://103.238.115.159:8080/tsportsuser1232/video.m3u8?token=ZIBOPLAYVS|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
         "t sports - hd 2": "http://103.209.196.22:84/feed1001/index.m3u8|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
         "btv hd": "https://nkafmbewiff.gpcdn.net/tile_2/master.m3u8|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
