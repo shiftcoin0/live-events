@@ -14,11 +14,8 @@ const AES_IV = process.env.AES_IV || "PriofyAppIV_2026"; // 16 bytes
 // সোর্স API-এর সময় BST (বাংলাদেশ সময়) হলে 6 রাখুন; UTC হলে 0 করুন
 const SOURCE_TZ_OFFSET_HOURS = Number(process.env.SOURCE_TZ_OFFSET_HOURS ?? 6);
 
-// স্ট্রিম URL থাকলে ম্যাচ শুরুর কত মিনিট আগে LIVE হবে (আপনার প্রয়োজনমতো পরিবর্তন করতে পারেন)
+// স্ট্রিম URL থাকলে ম্যাচ শুরুর কত মিনিট আগে LIVE হবে
 const PRE_LIVE_MINUTES = Number(process.env.PRE_LIVE_MINUTES ?? 15);
-
-// ম্যাচ শুরুর কত ঘণ্টা পর অটো ENDED ধরা হবে (যদি সোর্স থেকে ENDED/FINISHED না আসে)
-const LIVE_WINDOW_HOURS = Number(process.env.LIVE_WINDOW_HOURS ?? 4);
 
 const USER_AGENT =
   "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 " +
@@ -359,37 +356,27 @@ function getSourceStatus(raw) {
 function resolveStatus(raw, startDate, isHot, hasStreams, now) {
   const sourceStatus = getSourceStatus(raw);
 
-  // ১) সোর্স থেকে ENDED / FINISHED / CANCELLED ইত্যাদি এলে সেটাই থাকবে
+  // ১) কেবল সোর্স API থেকে ENDED / FINISHED / CANCELLED এলেই শেষ হবে (অটো শেষ হবে না)
   if (TERMINAL_STATUSES.has(sourceStatus)) {
     return sourceStatus;
   }
 
-  const nowMs = now.getTime();
-  const liveWindowMs = LIVE_WINDOW_HOURS * 60 * 60 * 1000;
-
   // ২) কোনো স্ট্রিম URL অ্যাড করা না থাকলে সময় হয়ে গেলেও LIVE হবে না → UPCOMING-ই থাকবে
   if (!hasStreams) {
-    if (startDate && nowMs > startDate.getTime() + liveWindowMs) {
-      return "ENDED";
-    }
     return "UPCOMING";
   }
 
   // ৩) স্ট্রিম URL অ্যাড করা থাকলে:
-  //    - সোর্সে LIVE থাকলে LIVE
-  //    - অথবা ম্যাচ শুরুর PRE_LIVE_MINUTES মিনিট আগে থেকেই LIVE হয়ে যাবে
   if (sourceStatus === "LIVE") {
     return "LIVE";
   }
 
   if (startDate) {
-    const startMs = startDate.getTime();
-    const preLiveStartMs = startMs - PRE_LIVE_MINUTES * 60 * 1000;
-    const endMs = startMs + liveWindowMs;
+    const nowMs = now.getTime();
+    const preLiveStartMs = startDate.getTime() - PRE_LIVE_MINUTES * 60 * 1000;
 
-    if (nowMs >= preLiveStartMs && nowMs <= endMs) return "LIVE";
-    if (nowMs < preLiveStartMs) return "UPCOMING";
-    return "ENDED";
+    // ম্যাচ শুরুর PRE_LIVE_MINUTES আগে থেকে LIVE হবে এবং API শেষ না করা পর্যন্ত LIVE থাকবে
+    return nowMs >= preLiveStartMs ? "LIVE" : "UPCOMING";
   }
 
   if (sourceStatus) return sourceStatus;
