@@ -14,6 +14,12 @@ const AES_IV = process.env.AES_IV || "PriofyAppIV_2026"; // 16 bytes
 // সোর্স API-এর সময় BST (বাংলাদেশ সময়) হলে 6 রাখুন; UTC হলে 0 করুন
 const SOURCE_TZ_OFFSET_HOURS = Number(process.env.SOURCE_TZ_OFFSET_HOURS ?? 6);
 
+// স্ট্রিম URL থাকলে ম্যাচ শুরুর কত মিনিট আগে LIVE হবে (আপনার প্রয়োজনমতো পরিবর্তন করতে পারেন)
+const PRE_LIVE_MINUTES = Number(process.env.PRE_LIVE_MINUTES ?? 15);
+
+// ম্যাচ শুরুর কত ঘণ্টা পর অটো ENDED ধরা হবে (যদি সোর্স থেকে ENDED/FINISHED না আসে)
+const LIVE_WINDOW_HOURS = Number(process.env.LIVE_WINDOW_HOURS ?? 4);
+
 const USER_AGENT =
   "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 " +
   "(KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36";
@@ -57,6 +63,18 @@ const KNOWN_STATUSES = new Set([
   "PLAYING",
   "SOON",
   "OVER",
+]);
+
+const TERMINAL_STATUSES = new Set([
+  "ENDED",
+  "FINISHED",
+  "COMPLETED",
+  "FT",
+  "OVER",
+  "CANCELLED",
+  "CANCELED",
+  "ABANDONED",
+  "POSTPONED",
 ]);
 
 const EMPTY_VALUES = new Set(["", "NULL", "NONE", "N/A", "NA", "UNDEFINED"]);
@@ -229,7 +247,6 @@ function parseEventDate(dateStr, timeStr) {
   const combined = `${(dateStr || "").trim()} ${(timeStr || "").trim()}`.trim();
   if (!combined) return null;
 
-  // Explicit timezone চেক
   let explicitOffsetMin = null;
   if (/\bBST\b/i.test(combined)) explicitOffsetMin = 6 * 60;
   else if (/\bIST\b/i.test(combined)) explicitOffsetMin = 5 * 60 + 30;
@@ -242,7 +259,6 @@ function parseEventDate(dateStr, timeStr) {
     }
   }
 
-  // Date অংশ বের করা
   let year, month, day, m;
   if ((m = combined.match(/\b(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})\b/))) {
     year = Number(m[1]);
@@ -269,7 +285,6 @@ function parseEventDate(dateStr, timeStr) {
     year = Number(m[3]);
   }
 
-  // Time অংশ বের করা (21:00, 09:00 PM, 9:00:30 pm ইত্যাদি)
   let hour = 0;
   let minute = 0;
   let second = 0;
@@ -290,7 +305,6 @@ function parseEventDate(dateStr, timeStr) {
     return new Date(utcMs);
   }
 
-  // Fallback native Date
   const normalized = combined.replace(/\bBST\b/i, "+06:00");
   const parsed = new Date(normalized);
   if (Number.isNaN(parsed.getTime())) return null;
@@ -314,8 +328,7 @@ function formatBstDateTime(dateObj) {
   );
 }
 
-function resolveStatus(raw, startDate, isHot, now) {
-  // ১) সোর্স API থেকে সরাসরি স্ট্যাটাস চেক
+function getSourceStatus(raw) {
   const rawStatusCandidates = [
     raw.status,
     raw.st,
@@ -334,28 +347,53 @@ function resolveStatus(raw, startDate, isHot, now) {
 
   for (const candidate of rawStatusCandidates) {
     const decoded = decStatus(candidate);
-    if (decoded) {
-      return decoded;
-    }
+    if (decoded) return decoded;
   }
 
-  // ২) সোর্সে বুলিয়ান/স্ট্রিং ফ্ল্যাগ থাকলে
   if (isTruthyFlag(raw.is_live) || isTruthyFlag(raw.isLive) || isTruthyFlag(raw.live)) return "LIVE";
   if (isTruthyFlag(raw.is_ended) || isTruthyFlag(raw.isEnded) || isTruthyFlag(raw.ended)) return "ENDED";
   if (isTruthyFlag(raw.is_finished) || isTruthyFlag(raw.isFinished) || isTruthyFlag(raw.finished)) return "FINISHED";
+  return "";
+}
 
-  // ৩) সোর্স API-তে কোনো স্ট্যাটাস না থাকলে সময় অনুযায়ী fallback
-  if (!startDate) {
-    return isHot ? "LIVE" : "UPCOMING";
+function resolveStatus(raw, startDate, isHot, hasStreams, now) {
+  const sourceStatus = getSourceStatus(raw);
+
+  // ১) সোর্স থেকে ENDED / FINISHED / CANCELLED ইত্যাদি এলে সেটাই থাকবে
+  if (TERMINAL_STATUSES.has(sourceStatus)) {
+    return sourceStatus;
   }
 
   const nowMs = now.getTime();
-  const startMs = startDate.getTime();
-  const liveWindowMs = 4 * 60 * 60 * 1000;
+  const liveWindowMs = LIVE_WINDOW_HOURS * 60 * 60 * 1000;
 
-  if (nowMs < startMs) return "UPCOMING";
-  if (nowMs <= startMs + liveWindowMs || isHot) return "LIVE";
-  return "ENDED";
+  // ২) কোনো স্ট্রিম URL অ্যাড করা না থাকলে সময় হয়ে গেলেও LIVE হবে না → UPCOMING-ই থাকবে
+  if (!hasStreams) {
+    if (startDate && nowMs > startDate.getTime() + liveWindowMs) {
+      return "ENDED";
+    }
+    return "UPCOMING";
+  }
+
+  // ৩) স্ট্রিম URL অ্যাড করা থাকলে:
+  //    - সোর্সে LIVE থাকলে LIVE
+  //    - অথবা ম্যাচ শুরুর PRE_LIVE_MINUTES মিনিট আগে থেকেই LIVE হয়ে যাবে
+  if (sourceStatus === "LIVE") {
+    return "LIVE";
+  }
+
+  if (startDate) {
+    const startMs = startDate.getTime();
+    const preLiveStartMs = startMs - PRE_LIVE_MINUTES * 60 * 1000;
+    const endMs = startMs + liveWindowMs;
+
+    if (nowMs >= preLiveStartMs && nowMs <= endMs) return "LIVE";
+    if (nowMs < preLiveStartMs) return "UPCOMING";
+    return "ENDED";
+  }
+
+  if (sourceStatus) return sourceStatus;
+  return isHot ? "LIVE" : "UPCOMING";
 }
 
 function buildPipeStreamUrl({ url, userAgent, referer, origin, drm }) {
@@ -490,6 +528,9 @@ function formatEvent(id, raw, now, usedIds) {
   const logo = raw.logo || decoded.leagueLogo || decoded.logo1 || decoded.logo2 || "";
   const coverImage = raw.cover_image || decoded.logo1 || decoded.leagueLogo || decoded.logo2 || "";
 
+  const streamMap = buildStreamMap(decoded.streams);
+  const hasStreams = Object.keys(streamMap).length > 0;
+
   return {
     _sortMs: startDate ? startDate.getTime() : Number.MAX_SAFE_INTEGER,
     _rawDate: decoded.date,
@@ -499,13 +540,13 @@ function formatEvent(id, raw, now, usedIds) {
       title,
       sport,
       sub_category,
-      status: resolveStatus(raw, startDate, decoded.isHot, now),
+      status: resolveStatus(raw, startDate, decoded.isHot, hasStreams, now),
       start_time_bst: formattedTime,
       time: formattedTime,
       logo,
       cover_image: coverImage,
       is_free: isFree,
-      stream_url_alpha: buildStreamMap(decoded.streams),
+      stream_url_alpha: streamMap,
     },
   };
 }
@@ -570,10 +611,8 @@ async function main() {
     throw new Error("API returned 0 events — পুরনো events.json অক্ষত রাখা হলো");
   }
 
-  // ডিবাগ লগ (প্রথম ইভেন্টের কী ও সময় যাচাই করার জন্য)
-  console.log("ℹ️ Sample raw keys:", Object.keys(validEntries[0][1]));
   console.log(
-    `ℹ️ Sample event: "${formatted[0].data.title}" | raw="${formatted[0]._rawDate} ${formatted[0]._rawTime}" | start_time_bst="${formatted[0].data.start_time_bst}" | status="${formatted[0].data.status}"`
+    `ℹ️ Sample event: "${formatted[0].data.title}" | raw="${formatted[0]._rawDate} ${formatted[0]._rawTime}" | start_time_bst="${formatted[0].data.start_time_bst}" | streams=${Object.keys(formatted[0].data.stream_url_alpha).length} | status="${formatted[0].data.status}"`
   );
 
   formatted.sort((a, b) => a._sortMs - b._sortMs);
