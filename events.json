@@ -1,6 +1,6 @@
 {
-  "last_updated": "Nov 14, 2026, 09:32:04 PM BST",
-  "last_updated_iso": "2026-11-14T15:32:04.329Z",
+  "last_updated": "Nov 14, 2026, 09:41:09 PM BST",
+  "last_updated_iso": "2026-11-14T15:41:09.539Z",
   "total_events": 305,
   "events": [
     {
@@ -58,13 +58,13 @@
       "cover_image": "https://img.sofascore.com/api/v1/team/6080/image",
       "is_free": true,
       "stream_url_alpha": {
+        "No Buffer-Aq": "https://live2.domaincdn.cc/livecdn/channel-19.flv?auth_key=3000001794662403-0-0-ae1a0221a0af20fae3b5daec92361874|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36&Referer=https://xlz.domainkqt.cc/ajax/chanel/type/5/link/channel-19/off-tvc?is_off_add=false",
         "No Buffer- hd": "httpS://server1.ziboplay.co/T-SPORRTS-HD/index.m3u8?token=AKASH|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
+        "server - 1": "https://live2.jorvakstreamcache.com/live/channel19.flv|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36&Referer=https://xlz.domainkqt.cc/ajax/chanel/type/8/link/channel19/off-tvc?is_off_add=false",
         "t sports - hd 1": "http://103.238.115.159:8080/tsportsuser1232/video.m3u8?token=ZIBOPLAYVS|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
         "t sports - hd 2": "http://103.209.196.22:84/feed1001/index.m3u8|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
         "btv hd": "https://nkafmbewiff.gpcdn.net/tile_2/master.m3u8|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
-        "Server 5": "https://www.btvlive.gov.bd/live/37f2df30-3edf-42f3-a2ee-6185002c841c/BD/355ba051-9a60-48aa-adcf-5a6c64da8c5c/index.m3u8|user-agent=Mozilla/5.0&Referer=https://www.btvlive.gov.bd",
-        "Server - 1": "https://live2.jorvakstreamcache.com/live/channel19.flv|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36&Referer=https://xlz.domainkqt.cc/ajax/chanel/type/8/link/channel19/off-tvc?is_off_add=false",
-        "Server - 2": "https://live2.domaincdn.cc/livecdn/channel-19.flv?auth_key=3000001794662403-0-0-ae1a0221a0af20fae3b5daec92361874|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36&Referer=https://xlz.domainkqt.cc/ajax/chanel/type/5/link/channel-19/off-tvc?is_off_add=false",
+        "Server 7": "https://www.btvlive.gov.bd/live/37f2df30-3edf-42f3-a2ee-6185002c841c/BD/355ba051-9a60-48aa-adcf-5a6c64da8c5c/index.m3u8|user-agent=Mozilla/5.0&Referer=https://www.btvlive.gov.bd",
         "Server - 3": "https://pull.niues.live/live/stream-511367_lhd.m3u8?auth_key=1794660068-0-0-56c4cb4862fdf77531344a1dbd18755e|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
         "Server - 4": "https://live2.jorvakstreamcache.com/live/channel19.m3u8|user-agent=Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36"
       }
@@ -74,7 +74,7 @@
       "title": "Wycombe vs Huddersfield",
       "sport": "Football",
       "sub_category": "Football",
-      "status": "LIVE",
+      "status": "UPCOMING",
       "start_time_bst": "Nov 14, 2026, 09:00:00 PM",
       "time": "Nov 14, 2026, 09:00:00 PM",
       "logo": "https://imagecache.365scores.com/image/upload/f_png,w_64,h_64,c_limit,q_auto:eco,dpr_2,d_Countries:Round:1.png/v2/Competitions/light/2",
@@ -117,7 +117,7 @@
       "title": "Stevenage vs Mansfield",
       "sport": "Football",
       "sub_category": "Football",
-      "status": "LIVE",
+      "status": "UPCOMING",
       "start_time_bst": "Nov 14, 2026, 09:00:00 PM",
       "time": "Nov 14, 2026, 09:00:00 PM",
       "logo": "https://imagecache.365scores.com/image/upload/f_png,w_64,h_64,c_limit,q_auto:eco,dpr_2,d_Countries:Round:1.png/v2/Competitions/light/2",
