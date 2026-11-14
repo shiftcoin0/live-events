@@ -1,12 +1,5 @@
 /**
  * Sports events sync — Priofy API → events.json
- *
- * API তে ঢুকতে অ্যাপের মতোই সাইন করা হেডার লাগে:
- *   x-timestamp : বর্তমান সময় (milliseconds)
- *   x-signature : Base64( HMAC-SHA256(timestamp, SECRET) )
- *
- * রেসপন্সের ফিল্ডগুলো AES-128-CBC দিয়ে এনক্রিপ্টেড থাকে (enc: true),
- * সেগুলো ডিক্রিপ্ট করে নতুন টার্গেট ফরম্যাটে (stream_url_alpha সহ) সেভ হয়।
  */
 const crypto = require("crypto");
 const fs = require("fs");
@@ -18,8 +11,8 @@ const HMAC_SECRET = process.env.HMAC_SECRET || "PriofySecure2026_LiveApp";
 const AES_KEY = process.env.AES_KEY || "PriofySecure2026"; // 16 bytes
 const AES_IV = process.env.AES_IV || "PriofyAppIV_2026"; // 16 bytes
 
-// সোর্স API-এর date/time যদি UTC হয় তবে 0 রাখুন; আগে থেকেই BST হলে 6 দিন
-const SOURCE_TZ_OFFSET_HOURS = Number(process.env.SOURCE_TZ_OFFSET_HOURS ?? 0);
+// সোর্স API-এর সময় BST (বাংলাদেশ সময়) হলে 6 রাখুন; UTC হলে 0 করুন
+const SOURCE_TZ_OFFSET_HOURS = Number(process.env.SOURCE_TZ_OFFSET_HOURS ?? 6);
 
 const USER_AGENT =
   "Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 " +
@@ -28,6 +21,21 @@ const USER_AGENT =
 const OUTPUT_FILE = path.join(__dirname, "..", "events.json");
 const MAX_RETRIES = 3;
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+const MONTH_MAP = {
+  jan: 1, january: 1,
+  feb: 2, february: 2,
+  mar: 3, march: 3,
+  apr: 4, april: 4,
+  may: 5,
+  jun: 6, june: 6,
+  jul: 7, july: 7,
+  aug: 8, august: 8,
+  sep: 9, sept: 9, september: 9,
+  oct: 10, october: 10,
+  nov: 11, november: 11,
+  dec: 12, december: 12,
+};
 
 const KNOWN_STATUSES = new Set([
   "UPCOMING",
@@ -50,6 +58,8 @@ const KNOWN_STATUSES = new Set([
   "SOON",
   "OVER",
 ]);
+
+const EMPTY_VALUES = new Set(["", "NULL", "NONE", "N/A", "NA", "UNDEFINED"]);
 
 // ── Crypto helpers ────────────────────────────────────────────────────────────
 function sign(timestamp) {
@@ -94,31 +104,29 @@ function dec(str) {
   return trimmed;
 }
 
-/** স্ট্যাটাস ডিকোড (AES, plain text অথবা Base64 যেকোনো ফরম্যাট সাপোর্ট করবে) */
+/** স্ট্যাটাস ডিকোড (AES, plain text অথবা Base64 সব ফরম্যাট সাপোর্ট করবে) */
 function decStatus(val) {
-  if (!val || typeof val !== "string") return "";
+  if (val === null || val === undefined) return "";
+  if (typeof val !== "string") return "";
   const trimmed = val.trim();
   if (!trimmed) return "";
 
-  // ১) আগে AES ডিক্রিপ্ট চেষ্টা
   const viaAes = aesDecrypt(trimmed);
-  if (viaAes !== null && viaAes.trim()) {
-    return viaAes.trim().toUpperCase();
+  if (viaAes !== null) {
+    const clean = viaAes.trim().toUpperCase();
+    return EMPTY_VALUES.has(clean) ? "" : clean;
   }
 
-  // ২) আগেই যদি প্লেইন স্ট্যাটাস (যেমন LIVE, UPCOMING, ENDED, FINISHED) হয়ে থাকে
   const upper = trimmed.toUpperCase();
-  if (KNOWN_STATUSES.has(upper)) {
-    return upper;
-  }
+  if (EMPTY_VALUES.has(upper)) return "";
+  if (KNOWN_STATUSES.has(upper)) return upper;
 
-  // ৩) নাহলে Base64 কিনা যাচাই করে ডিকোড
   const looksBase64 = /^[A-Za-z0-9+/]+=*$/.test(trimmed) && trimmed.length % 4 === 0;
   if (looksBase64) {
     try {
-      const decoded = Buffer.from(trimmed, "base64").toString("utf8").trim();
-      if (decoded && /^[A-Za-z0-9 _-]+$/.test(decoded)) {
-        return decoded.toUpperCase();
+      const decoded = Buffer.from(trimmed, "base64").toString("utf8").trim().toUpperCase();
+      if (decoded && /^[A-Z0-9 _-]+$/.test(decoded) && !EMPTY_VALUES.has(decoded)) {
+        return decoded;
       }
     } catch {
       // ignore
@@ -128,9 +136,16 @@ function decStatus(val) {
   return upper;
 }
 
-/**
- * DRM ডিকোড: plain "kid:key" বা license URL ফেরত দেয় (Base64 ডাবল-এনকোডেড থাকলেও ডিকোড করবে)
- */
+function isTruthyFlag(val) {
+  if (val === true || val === 1) return true;
+  if (typeof val === "string") {
+    const v = dec(val).toLowerCase();
+    return v === "true" || v === "1" || v === "yes";
+  }
+  return false;
+}
+
+/** DRM ডিকোড: plain "kid:key" বা license URL ফেরত দেয় */
 function decodeDrmPlain(value) {
   if (!value) return "";
   let plain = dec(value);
@@ -209,24 +224,80 @@ function detectSport(league, title, raw) {
   return { sport: "Sports", sub_category: league || "General" };
 }
 
-/** সোর্সের date + time স্ট্রিং থেকে Date অবজেক্ট তৈরি */
+/** যেকোনো date + time ফরম্যাট থেকে নির্ভুলভাবে Date অবজেক্ট তৈরি */
 function parseEventDate(dateStr, timeStr) {
-  const combined = `${dateStr || ""} ${timeStr || ""}`.trim();
+  const combined = `${(dateStr || "").trim()} ${(timeStr || "").trim()}`.trim();
   if (!combined) return null;
 
-  const hasTz = /(Z|[+-]\d{2}:?\d{2}|GMT|UTC|BST)/i.test(combined);
-  if (hasTz) {
-    const normalized = combined.replace(/\bBST\b/i, "+06:00");
-    const parsed = new Date(normalized);
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  // Explicit timezone চেক
+  let explicitOffsetMin = null;
+  if (/\bBST\b/i.test(combined)) explicitOffsetMin = 6 * 60;
+  else if (/\bIST\b/i.test(combined)) explicitOffsetMin = 5 * 60 + 30;
+  else if (/\b(UTC|GMT)\b/i.test(combined) || /Z$/i.test(combined)) explicitOffsetMin = 0;
+  else {
+    const tzMatch = combined.match(/([+-])(\d{2}):?(\d{2})\s*$/);
+    if (tzMatch) {
+      const signVal = tzMatch[1] === "-" ? -1 : 1;
+      explicitOffsetMin = signVal * (Number(tzMatch[2]) * 60 + Number(tzMatch[3]));
+    }
   }
 
-  const parsed = new Date(`${combined} UTC`);
-  if (Number.isNaN(parsed.getTime())) {
-    const fallback = new Date(combined);
-    return Number.isNaN(fallback.getTime()) ? null : fallback;
+  // Date অংশ বের করা
+  let year, month, day, m;
+  if ((m = combined.match(/\b(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})\b/))) {
+    year = Number(m[1]);
+    month = Number(m[2]);
+    day = Number(m[3]);
+  } else if ((m = combined.match(/\b(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})\b/))) {
+    const p1 = Number(m[1]);
+    const p2 = Number(m[2]);
+    year = Number(m[3]);
+    if (p2 > 12) {
+      month = p1;
+      day = p2;
+    } else {
+      day = p1;
+      month = p2;
+    }
+  } else if ((m = combined.match(/\b(\d{1,2})\s+([A-Za-z]+),?\s+(\d{4})\b/))) {
+    day = Number(m[1]);
+    month = MONTH_MAP[m[2].toLowerCase()];
+    year = Number(m[3]);
+  } else if ((m = combined.match(/\b([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})\b/))) {
+    month = MONTH_MAP[m[1].toLowerCase()];
+    day = Number(m[2]);
+    year = Number(m[3]);
   }
-  return new Date(parsed.getTime() - SOURCE_TZ_OFFSET_HOURS * 60 * 60 * 1000);
+
+  // Time অংশ বের করা (21:00, 09:00 PM, 9:00:30 pm ইত্যাদি)
+  let hour = 0;
+  let minute = 0;
+  let second = 0;
+  const tm = combined.match(/\b(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?\b/i);
+  if (tm) {
+    hour = Number(tm[1]);
+    minute = Number(tm[2]);
+    second = tm[3] ? Number(tm[3]) : 0;
+    const ampm = tm[4] ? tm[4].toUpperCase() : "";
+    if (ampm === "PM" && hour < 12) hour += 12;
+    if (ampm === "AM" && hour === 12) hour = 0;
+  }
+
+  if (year && month && day && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+    const offsetMin =
+      explicitOffsetMin !== null ? explicitOffsetMin : SOURCE_TZ_OFFSET_HOURS * 60;
+    const utcMs = Date.UTC(year, month - 1, day, hour, minute, second) - offsetMin * 60 * 1000;
+    return new Date(utcMs);
+  }
+
+  // Fallback native Date
+  const normalized = combined.replace(/\bBST\b/i, "+06:00");
+  const parsed = new Date(normalized);
+  if (Number.isNaN(parsed.getTime())) return null;
+  if (explicitOffsetMin === null) {
+    return new Date(parsed.getTime() - SOURCE_TZ_OFFSET_HOURS * 60 * 60 * 1000);
+  }
+  return parsed;
 }
 
 /** "Nov 20, 2026, 06:30:55 AM" ফরম্যাটে BST সময় */
@@ -244,7 +315,7 @@ function formatBstDateTime(dateObj) {
 }
 
 function resolveStatus(raw, startDate, isHot, now) {
-  // ১) সোর্স API থেকে সরাসরি স্ট্যাটাস চেক (এনক্রিপ্টেড থাকলেও ডিকোড হবে)
+  // ১) সোর্স API থেকে সরাসরি স্ট্যাটাস চেক
   const rawStatusCandidates = [
     raw.status,
     raw.st,
@@ -254,26 +325,30 @@ function resolveStatus(raw, startDate, isHot, now) {
     raw.eventStatus,
     raw.live_status,
     raw.liveStatus,
+    raw.current_status,
+    raw.status_text,
     raw.state,
     raw.match_state,
+    raw.badge,
   ];
 
   for (const candidate of rawStatusCandidates) {
     const decoded = decStatus(candidate);
     if (decoded) {
-      return decoded; // UPCOMING, LIVE, ENDED, FINISHED ইত্যাদি হুবহু রিটার্ন করবে
+      return decoded;
     }
   }
 
-  // ২) সোর্সে বুলিয়ান ফ্ল্যাগ থাকলে
-  if (raw.is_live === true || raw.isLive === true || raw.live === true) return "LIVE";
-  if (raw.is_ended === true || raw.isEnded === true || raw.ended === true) return "ENDED";
-  if (raw.is_finished === true || raw.isFinished === true || raw.finished === true) return "FINISHED";
+  // ২) সোর্সে বুলিয়ান/স্ট্রিং ফ্ল্যাগ থাকলে
+  if (isTruthyFlag(raw.is_live) || isTruthyFlag(raw.isLive) || isTruthyFlag(raw.live)) return "LIVE";
+  if (isTruthyFlag(raw.is_ended) || isTruthyFlag(raw.isEnded) || isTruthyFlag(raw.ended)) return "ENDED";
+  if (isTruthyFlag(raw.is_finished) || isTruthyFlag(raw.isFinished) || isTruthyFlag(raw.finished)) return "FINISHED";
 
   // ৩) সোর্স API-তে কোনো স্ট্যাটাস না থাকলে সময় অনুযায়ী fallback
   if (!startDate) {
     return isHot ? "LIVE" : "UPCOMING";
   }
+
   const nowMs = now.getTime();
   const startMs = startDate.getTime();
   const liveWindowMs = 4 * 60 * 60 * 1000;
@@ -283,9 +358,6 @@ function resolveStatus(raw, startDate, isHot, now) {
   return "ENDED";
 }
 
-/**
- * স্ট্রিম অবজেক্টকে "url|user-agent=...&Referer=...&Origin=...&drm_key=..." ফরম্যাটে রূপান্তর
- */
 function buildPipeStreamUrl({ url, userAgent, referer, origin, drm }) {
   const cleanUrl = (url || "").trim();
   if (!cleanUrl) return "";
@@ -295,15 +367,9 @@ function buildPipeStreamUrl({ url, userAgent, referer, origin, drm }) {
   const hasParam = (key) =>
     params.some((p) => p.split("=")[0].trim().toLowerCase() === key.toLowerCase());
 
-  if (userAgent && !hasParam("user-agent")) {
-    params.push(`user-agent=${userAgent}`);
-  }
-  if (referer && !hasParam("referer")) {
-    params.push(`Referer=${referer}`);
-  }
-  if (origin && !hasParam("origin")) {
-    params.push(`Origin=${origin}`);
-  }
+  if (userAgent && !hasParam("user-agent")) params.push(`user-agent=${userAgent}`);
+  if (referer && !hasParam("referer")) params.push(`Referer=${referer}`);
+  if (origin && !hasParam("origin")) params.push(`Origin=${origin}`);
   if (drm && !hasParam("drm_key") && !hasParam("drm_license")) {
     const keyName = drm.startsWith("http") ? "drm_license" : "drm_key";
     params.push(`${keyName}=${drm}`);
@@ -312,7 +378,6 @@ function buildPipeStreamUrl({ url, userAgent, referer, origin, drm }) {
   return params.length > 0 ? `${baseUrl}|${params.join("&")}` : baseUrl;
 }
 
-/** স্ট্রিম লিস্ট থেকে stream_url_alpha অবজেক্ট তৈরি */
 function buildStreamMap(streams) {
   const map = {};
   const nameCount = {};
@@ -359,14 +424,13 @@ function extractEncrypted(id, raw) {
     logo1: dec(raw.lg1),
     logo2: dec(raw.lg2),
     leagueLogo: dec(raw.llg),
-    isHot: Boolean(raw.is_hot),
+    isHot: isTruthyFlag(raw.is_hot),
     visibility: raw.visibility || "",
     raw,
     streams,
   };
 }
 
-/** enc নেই এমন প্লেইন ফরম্যাট */
 function extractPlain(id, raw) {
   const list = Array.isArray(raw.link_live)
     ? raw.link_live
@@ -395,7 +459,7 @@ function extractPlain(id, raw) {
     logo1: raw.localteam_logo || raw.logo1 || "",
     logo2: raw.visitorteam_logo || raw.logo2 || "",
     leagueLogo: raw.league_logo || raw.leagueLogo || "",
-    isHot: Boolean(raw.is_hot),
+    isHot: isTruthyFlag(raw.is_hot),
     visibility: raw.visibility || "",
     raw,
     streams,
@@ -428,6 +492,8 @@ function formatEvent(id, raw, now, usedIds) {
 
   return {
     _sortMs: startDate ? startDate.getTime() : Number.MAX_SAFE_INTEGER,
+    _rawDate: decoded.date,
+    _rawTime: decoded.time,
     data: {
       match_id: matchId,
       title,
@@ -497,13 +563,18 @@ async function main() {
   const now = new Date();
   const usedIds = new Set();
 
-  const formatted = entries
-    .filter(([, e]) => e && typeof e === "object")
-    .map(([id, e]) => formatEvent(id, e, now, usedIds));
+  const validEntries = entries.filter(([, e]) => e && typeof e === "object");
+  const formatted = validEntries.map(([id, e]) => formatEvent(id, e, now, usedIds));
 
   if (formatted.length === 0) {
     throw new Error("API returned 0 events — পুরনো events.json অক্ষত রাখা হলো");
   }
+
+  // ডিবাগ লগ (প্রথম ইভেন্টের কী ও সময় যাচাই করার জন্য)
+  console.log("ℹ️ Sample raw keys:", Object.keys(validEntries[0][1]));
+  console.log(
+    `ℹ️ Sample event: "${formatted[0].data.title}" | raw="${formatted[0]._rawDate} ${formatted[0]._rawTime}" | start_time_bst="${formatted[0].data.start_time_bst}" | status="${formatted[0].data.status}"`
+  );
 
   formatted.sort((a, b) => a._sortMs - b._sortMs);
   const events = formatted.map((item) => item.data);
